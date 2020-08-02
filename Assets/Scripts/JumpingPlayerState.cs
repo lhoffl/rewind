@@ -39,7 +39,8 @@ public class JumpingPlayerState : IPlayerState {
     }
 
     public void Exit() {
-        _player.ResetColor();
+        _player.UpdateJumpingAnimation(false);
+        //_player.ResetColor();
     }
 
     public void Enter(Player player) {
@@ -49,7 +50,8 @@ public class JumpingPlayerState : IPlayerState {
 
         currentTimer = timerMax;
 
-        _player.ChangeColor(PlayerSettings.JumpColor);
+        _player.UpdateJumpingAnimation(true);
+        //_player.ChangeColor(PlayerSettings.JumpColor);
     }
 
     private void Jump() {

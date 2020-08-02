@@ -84,7 +84,7 @@ public class RewindingPlayerState : IPlayerState {
                 _player.AddForce(PlayerSettings.DoubleFallForce);
                 maxSpeed = PlayerSettings.FallingMaxSpeed;
             }
-
+            _player.FlipSprite(pos.x < 0);
             _player.Move(acclerationFactor, maxSpeed, pos.x);
         } 
         else if (_states.Count > 0 ) {

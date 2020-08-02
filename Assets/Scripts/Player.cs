@@ -10,8 +10,9 @@ public class Player : MonoBehaviour {
     private IPlayerState _currentState;
     private Rigidbody2D _rigidbody;
     private SpriteRenderer _spriteRenderer;
-    //private BoxCollider2D _collider;
     private CircleCollider2D _collider;
+
+    private Animator _animator;
 
     private Color _defaultColor;
 
@@ -23,6 +24,7 @@ public class Player : MonoBehaviour {
         _rigidbody = GetComponent<Rigidbody2D>();
         _spriteRenderer = GetComponent<SpriteRenderer>();
         _collider = GetComponent<CircleCollider2D>();
+        _animator = GetComponent<Animator>();
         StateStack = new Stack<IPlayerState>();
 
         _defaultColor = _spriteRenderer.color;
@@ -61,7 +63,7 @@ public class Player : MonoBehaviour {
     }
 
     public void FlipSprite(bool active) {
-        _spriteRenderer.flipX = active;
+        _spriteRenderer.flipX = !active;
     }
 
     public bool IsGrounded() {
@@ -70,8 +72,8 @@ public class Player : MonoBehaviour {
 
     private bool CheckForCollisionOnLayer(LayerMask mask) {
 
-        return Physics2D.OverlapArea(new Vector2(transform.position.x - 0.1f, transform.position.y - 0.25f),
-            new Vector2(transform.position.x + 0.1f, transform.position.y - 0.26f), mask);
+        return Physics2D.OverlapArea(new Vector2(transform.position.x - 0.1f, transform.position.y - 1f),
+            new Vector2(transform.position.x + 0.1f, transform.position.y - 1.1f), mask);
     }
 
     public bool NotOnSteel() {
@@ -92,11 +94,16 @@ public class Player : MonoBehaviour {
 
     public void Respawn() {
         transform.position = GameObject.FindGameObjectWithTag("SpawnPoint").transform.position;
+        EnterState(new DefaultPlayerState());
         ResetVelocity();
     }
 
     public void ChangeColor(Color color) {
         _spriteRenderer.color = color;
+    }
+
+    public void UpdateJumpingAnimation(bool active) {
+        _animator.SetBool("isJumping", active);
     }
 
     public void ResetColor() {
