@@ -9,8 +9,10 @@ public class RewindingPlayerState : IPlayerState {
 
     private Stack<IPlayerState> _states;
 
-    private Stack<Inputs> _currentInputs;
     private IPlayerState _currentRewoundState;
+
+    private float _defaultFallAccleration = PlayerSettings.DefaultFallAcceleration;
+    private float _currentFallAccleration = 0;
 
     public void HandleInput(Inputs inputs) {
 
@@ -40,60 +42,35 @@ public class RewindingPlayerState : IPlayerState {
         _states = _player.StateStack;
         _player.ToggleCollider(true);
         if(_states.Count > 0) {
-            Debug.Log("Rewinding " + _states.Count + " states");
+            //Debug.Log("Rewinding " + _states.Count + " states");
             _currentRewoundState = _states.Pop();
-            _currentInputs = _currentRewoundState.GetInputs();
+            Debug.Log("Undo " + _currentRewoundState.GetType());
         }
     }
 
     public void Undo() {
 
-        if(_currentInputs != null && _currentInputs.Count != 0) {            
-            Inputs inputs = _currentInputs.Pop();
-            Vector3 pos = -inputs.Position;
-
-            float acclerationFactor = PlayerSettings.DefaultAccelerationFactor;
-            float maxSpeed = PlayerSettings.DefaultMaxSpeed;
-
-            if(_currentRewoundState is DefaultPlayerState && inputs.JumpButtonDown) {
-                _player.AddForce(PlayerSettings.JumpForce);
+        if(_currentRewoundState is RewindingPlayerState) {
+            if(_states.Count > 1) {
+                _currentRewoundState = _states.Pop();
+                Debug.Log("Undo " + _currentRewoundState.GetType());
             }
+        }
 
-            if(_currentRewoundState is JumpingPlayerState) {
-                if(inputs.JumpButtonDown) {
-                    _player.AddForce(PlayerSettings.DoubleJumpForce);
-                }
-                else { 
-                    _player.AddForce(PlayerSettings.DefaultFallForce);
-                }
-
-                Color color = PlayerSettings.JumpColor;
-                color.a = 0.5f;
-
-                _player.ChangeColor(color);
-                acclerationFactor = PlayerSettings.JumpingAccelerationFactor;
-            }
-            else {
-                Color color = _player.GetDefaultColor();
-                color.a = 0.5f;
-
-                _player.ChangeColor(color);
-            }
-
-            if(_currentRewoundState is FallingPlayerState) {
-                _player.AddForce(PlayerSettings.DoubleFallForce);
-                maxSpeed = PlayerSettings.FallingMaxSpeed;
-            }
-            _player.FlipSprite(pos.x < 0);
-            _player.Move(acclerationFactor, maxSpeed, pos.x);
-        } 
+        if(!_currentRewoundState.UndoComplete()) {
+            _currentRewoundState.Undo();
+        }
         else if (_states.Count > 0 ) {
             _currentRewoundState = _states.Pop();
-            _currentInputs = _currentRewoundState.GetInputs();
+            Debug.Log("Undo " + _currentRewoundState.GetType());
         }
     }
 
     public Stack<Inputs> GetInputs() {
         return null;
+    }
+
+    public bool UndoComplete() {
+        return _states.Count <= 0;
     }
 }

@@ -31,7 +31,11 @@ public class DefaultPlayerState : IPlayerState {
     public void HandleCollision(Collision2D other) {}
 
     public void Update() {
-        Move();
+        Move(_position.x);
+
+        if(!_player.IsGrounded()) {
+            _player.EnterState(new FallingPlayerState());
+        }
     }
     
     public void Exit() {}
@@ -41,12 +45,24 @@ public class DefaultPlayerState : IPlayerState {
         _inputs = new Stack<Inputs>();
     }
 
-    private void Move() {
-        _player.Rigidbody.velocity = new Vector3(PlayerSettings.DefaultAccelerationFactor * _position.x, _player.Rigidbody.velocity.y, 0);
-        Mathf.Clamp(_player.Rigidbody.velocity.x, 0, PlayerSettings.DefaultMaxSpeed);
+    private void Move(float positionX) {
+        _player.Move(PlayerSettings.DefaultAccelerationFactor, PlayerSettings.DefaultMaxSpeed, positionX);
     }
 
     public Stack<Inputs> GetInputs() {
         return _inputs;
+    }
+
+    public void Undo() {
+
+        Inputs input = _inputs.Pop();
+        Vector3 position = -input.Position;
+
+        Move(position.x);
+        _player.FlipSprite(position.x < 0);
+    }
+
+    public bool UndoComplete() {
+        return _inputs.Count <= 0;
     }
 }

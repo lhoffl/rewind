@@ -12,10 +12,12 @@ public static class PlayerSettings {
     public static float JumpingAccelerationFactor = 8f;
     
     public static float JumpForce = 500f;
-    public static float DoubleJumpForce = 750f;
+    public static float DoubleJumpForce = 1000f;
     
     public static float DefaultFallForce = -5f;
     public static float DoubleFallForce = -35f;
 
-    public static Color JumpColor = new Color(255f, 0f, 0f, 255f);
+    public static float DefaultFallAcceleration = -1.5f;
+
+    public static Color JumpColor = new Color(172f, 60f, 255f, 255f);
 }

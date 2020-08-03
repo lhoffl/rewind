@@ -9,8 +9,14 @@ public class JumpingPlayerState : IPlayerState {
     private Player _player;
     private Vector3 _position;
 
-    private int timerMax = 15;
-    private int currentTimer = 0;
+    private int _timerMax = 15;
+    private int _currentTimer = 0;
+
+    private float _currentFallForce = PlayerSettings.DefaultFallForce;
+
+    private int _finalCount;
+
+    private bool _undoActive = false;
 
     public void HandleInput(Inputs inputs) {
 
@@ -34,24 +40,24 @@ public class JumpingPlayerState : IPlayerState {
     public void HandleCollision(Collision2D other) {}
 
     public void Update() {
-        Move();
+        Move(_position.x);
         Fall();
     }
 
     public void Exit() {
         _player.UpdateJumpingAnimation(false);
-        //_player.ResetColor();
+        _finalCount = _inputs.Count;
     }
 
     public void Enter(Player player) {
+        
         _player = player;
         _inputs = new Stack<Inputs>();
+        
         Jump();
-
-        currentTimer = timerMax;
-
+        
+        _currentTimer = _timerMax;
         _player.UpdateJumpingAnimation(true);
-        //_player.ChangeColor(PlayerSettings.JumpColor);
     }
 
     private void Jump() {
@@ -60,18 +66,41 @@ public class JumpingPlayerState : IPlayerState {
 
     private void Fall() {
 
-        _player.AddForce(PlayerSettings.DefaultFallForce);
-        currentTimer--;
+        _player.AddForce(_currentFallForce);
+        _currentFallForce += PlayerSettings.DefaultFallAcceleration;
+        
+        _currentTimer--;
 
-        if(_player.IsGrounded() && currentTimer <= 0)
+        if(_player.IsGrounded() && _currentTimer <= 0 && !_undoActive)
             _player.EnterState(new DefaultPlayerState());
     }
 
-    private void Move() {
-        _player.Move(PlayerSettings.JumpingAccelerationFactor, PlayerSettings.DefaultMaxSpeed, _position.x);
+    private void Move(float positionX) {
+        _player.Move(PlayerSettings.JumpingAccelerationFactor, PlayerSettings.DefaultMaxSpeed, positionX);
     }
     
     public Stack<Inputs> GetInputs() {
         return _inputs;
+    }
+
+    public void Undo() {
+
+        _undoActive = true;
+
+        Inputs input = _inputs.Pop();
+        Vector3 position = -input.Position;
+
+        if(_inputs.Count == 1) {
+            Jump();
+        }
+
+        Move(position.x);
+        Fall();
+
+        _player.FlipSprite(position.x < 0);
+    }
+
+    public bool UndoComplete() {
+        return _inputs.Count <= 0;
     }
 }

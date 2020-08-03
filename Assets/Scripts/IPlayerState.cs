@@ -10,4 +10,6 @@ public interface IPlayerState {
     void Exit();
     void Update();
     Stack<Inputs> GetInputs();
+    bool UndoComplete();
+    void Undo();
 }

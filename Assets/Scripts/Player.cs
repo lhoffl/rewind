@@ -8,6 +8,8 @@ public class Player : MonoBehaviour {
     private LayerMask _platformLayerMask, _floorLayerMask;
 
     private IPlayerState _currentState;
+    private IPlayerState _previousState;
+
     private Rigidbody2D _rigidbody;
     private SpriteRenderer _spriteRenderer;
     private CircleCollider2D _collider;
@@ -31,7 +33,7 @@ public class Player : MonoBehaviour {
 
         Rigidbody = _rigidbody;
 
-        EnterState(PlayerState.DefaultPlayerState);
+        EnterState(new DefaultPlayerState());
     }
     
     private void FixedUpdate() {
@@ -47,11 +49,14 @@ public class Player : MonoBehaviour {
             _currentState.Exit();
         }
 
-        StateStack.Push(state);
-    
+        if(!(state is RewindingPlayerState))
+            StateStack.Push(state);
+
+        _previousState = _currentState;
         _currentState = state;
         _currentState.Enter(this);
-        Debug.Log(_currentState.GetType());
+        
+        //Debug.Log(_currentState.GetType());
     } 
     
     public void HandleInput(Inputs inputs) {
@@ -77,7 +82,7 @@ public class Player : MonoBehaviour {
     }
 
     public bool NotOnSteel() {
-        return !CheckForCollisionOnLayer(_floorLayerMask);
+        return true; //!CheckForCollisionOnLayer(_floorLayerMask);
     }
 
     public void ResetVelocity() {
@@ -125,5 +130,9 @@ public class Player : MonoBehaviour {
     public void Move(float acceleration, float maxSpeed, float positionX) {
         _rigidbody.velocity = new Vector3(acceleration * positionX, _rigidbody.velocity.y, 0);
         Mathf.Clamp(_rigidbody.velocity.x, 0, maxSpeed);
+    }
+
+    public IPlayerState GetPreviousState() {
+        return _previousState;
     }
 }
