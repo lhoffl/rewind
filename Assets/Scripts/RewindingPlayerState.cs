@@ -26,7 +26,7 @@ public class RewindingPlayerState : IPlayerState {
         } 
     }
 
-    public void HandleCollision(Collision2D other) {}
+    public void HandleCollision(Collider2D other) {}
 
     public void Update() {
         Undo();

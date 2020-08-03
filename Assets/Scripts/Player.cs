@@ -14,6 +14,8 @@ public class Player : MonoBehaviour {
     private SpriteRenderer _spriteRenderer;
     private CircleCollider2D _collider;
 
+    private Vector3 _spawnPoint;
+
     private Animator _animator;
 
     private Color _defaultColor;
@@ -63,7 +65,13 @@ public class Player : MonoBehaviour {
         _currentState.HandleInput(inputs);
     }
 
-    private void OnCollisionEnter2D(Collision2D other) {
+    private void OnTriggerEnter2D(Collider2D other) {
+
+        if(other.gameObject.CompareTag("SpawnPoint")) {
+            Debug.Log("Hit " + other.gameObject.name + " at " + other.gameObject.transform.position);
+            _spawnPoint = other.gameObject.transform.position;
+        }
+
         _currentState.HandleCollision(other);
     }
 
@@ -98,7 +106,7 @@ public class Player : MonoBehaviour {
     }
 
     public void Respawn() {
-        transform.position = GameObject.FindGameObjectWithTag("SpawnPoint").transform.position;
+        transform.position = _spawnPoint;
         EnterState(new DefaultPlayerState());
         ResetVelocity();
     }

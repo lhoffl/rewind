@@ -5,7 +5,7 @@ using UnityEngine;
 
 public interface IPlayerState { 
     void HandleInput(Inputs inputs);
-    void HandleCollision(Collision2D other);
+    void HandleCollision(Collider2D other);
     void Enter(Player player);
     void Exit();
     void Update();

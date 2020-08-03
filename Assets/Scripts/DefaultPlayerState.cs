@@ -28,7 +28,7 @@ public class DefaultPlayerState : IPlayerState {
         _position = inputs.Position;
     }
 
-    public void HandleCollision(Collision2D other) {}
+    public void HandleCollision(Collider2D other) {}
 
     public void Update() {
         Move(_position.x);

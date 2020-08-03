@@ -36,7 +36,7 @@ public class FallingPlayerState : IPlayerState {
         Fall();
     }
 
-    public void HandleCollision(Collision2D other) {}
+    public void HandleCollision(Collider2D other) {}
 
     public void Exit() {
         _finalCount = _inputs.Count;
