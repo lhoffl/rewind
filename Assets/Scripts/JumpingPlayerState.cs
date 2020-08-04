@@ -4,55 +4,49 @@ using UnityEngine;
 
 public class JumpingPlayerState : IPlayerState {
 
-    private Stack<Inputs> _inputs;
-
     private Player _player;
     private Vector3 _position;
 
-    private int _timerMax = 15;
+    private const int _timerMax = 15;
     private int _currentTimer = 0;
 
     private float _currentFallForce = PlayerSettings.DefaultFallForce;
 
-    private int _finalCount;
+    private Queue<ICommand> _jumpCommands;
+    private Stack<ICommand> _moveCommands;
 
     private bool _undoActive = false;
 
     public void HandleInput(Inputs inputs) {
 
-        if(!_inputs.Contains(inputs)) {
-            if(inputs.Position != Vector3.zero)
-                _inputs.Push(inputs);
-        }
-
         if(inputs.JumpButtonDown) {
             if(_player.NotOnSteel())
-                _player.EnterState(new FallingPlayerState());
+                _player.EnterState(new DoubleJumpingPlayerState());
         }
-
-        if(inputs.RewindButtonDown) {
+        else if(inputs.RewindButtonDown && _player.CanRewind()) {
             _player.EnterState(new RewindingPlayerState());
         }
-
-        _position = inputs.Position;
+        else {
+            if(inputs.Position != Vector3.zero)
+                Move(inputs);
+        }
     }
 
     public void HandleCollision(Collider2D other) {}
 
     public void Update() {
-        Move(_position.x);
         Fall();
     }
 
     public void Exit() {
         _player.UpdateJumpingAnimation(false);
-        _finalCount = _inputs.Count;
     }
 
     public void Enter(Player player) {
         
         _player = player;
-        _inputs = new Stack<Inputs>();
+        _jumpCommands = new Queue<ICommand>();
+        _moveCommands = new Stack<ICommand>();
         
         Jump();
         
@@ -61,46 +55,50 @@ public class JumpingPlayerState : IPlayerState {
     }
 
     private void Jump() {
-        _player.AddForce(PlayerSettings.JumpForce);
+        JumpCommand jumpCommand = new JumpCommand(PlayerSettings.JumpForce);
+        jumpCommand.execute(null, _player);
+        _jumpCommands.Enqueue(jumpCommand);
     }
 
     private void Fall() {
-
-        _player.AddForce(_currentFallForce);
-        _currentFallForce += PlayerSettings.DefaultFallAcceleration;
         
+        JumpCommand fallCommand = new JumpCommand(_currentFallForce);
+        fallCommand.execute(null, _player);
+        _jumpCommands.Enqueue(fallCommand);
+
+        _currentFallForce += PlayerSettings.DefaultFallAcceleration;
         _currentTimer--;
 
         if(_player.IsGrounded() && _currentTimer <= 0 && !_undoActive)
             _player.EnterState(new DefaultPlayerState());
     }
 
-    private void Move(float positionX) {
-        _player.Move(PlayerSettings.JumpingAccelerationFactor, PlayerSettings.DefaultMaxSpeed, positionX);
-    }
-    
-    public Stack<Inputs> GetInputs() {
-        return _inputs;
+    private void Move(Inputs inputs) {
+        MoveCommand moveCommand = new MoveCommand(PlayerSettings.JumpingAccelerationFactor, PlayerSettings.DefaultMaxSpeed);
+        moveCommand.execute(inputs, _player);
+        _moveCommands.Push(moveCommand);
     }
 
     public void Undo() {
-
         _undoActive = true;
+        _player.UpdateJumpingAnimation(true);
 
-        Inputs input = _inputs.Pop();
-        Vector3 position = -input.Position;
-
-        if(_inputs.Count == 1) {
-            Jump();
+        if(_jumpCommands.Count > 0) {
+            ICommand command = _jumpCommands.Dequeue();
+            command.undo();
         }
 
-        Move(position.x);
-        Fall();
-
-        _player.FlipSprite(position.x < 0);
+        if(_moveCommands.Count > 0) {
+            ICommand command = _moveCommands.Pop();
+            command.undo();
+        }
     }
 
     public bool UndoComplete() {
-        return _inputs.Count <= 0;
+        if(_jumpCommands.Count <= 0 && _moveCommands.Count <= 0) {
+            _player.UpdateJumpingAnimation(false);
+            return true;
+        }
+        return false;
     }
 }

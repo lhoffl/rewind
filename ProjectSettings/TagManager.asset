@@ -16,7 +16,7 @@ TagManager:
   - 
   - Platform
   - Floor
-  - 
+  - Background
   - 
   - 
   - 
@@ -41,4 +41,7 @@ TagManager:
   m_SortingLayers:
   - name: Default
     uniqueID: 0
+    locked: 0
+  - name: Background
+    uniqueID: 32666603
     locked: 0

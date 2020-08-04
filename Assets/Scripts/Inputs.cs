@@ -7,7 +7,7 @@ public class Inputs {
     private Vector3 _position;
     private bool _jumpButtonDown;
     private bool _rewindButtonDown;
-
+    
     public Vector3 Position => _position;
     public bool JumpButtonDown => _jumpButtonDown;
     public bool RewindButtonDown => _rewindButtonDown;

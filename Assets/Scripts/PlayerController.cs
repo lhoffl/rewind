@@ -29,8 +29,8 @@ public class PlayerController : MonoBehaviour {
     }
 
     private void UpdatePlayer() {
-        if(_position != Vector3.zero && !rewindButtonDown)
-            _player.FlipSprite(_position.x < 0);
+        //if(_position != Vector3.zero && !rewindButtonDown)
+        //    _player.FlipSprite(_position.x < 0);
         _player.HandleInput(_inputs);
     }
 }

@@ -17,22 +17,18 @@ public class RewindingPlayerState : IPlayerState {
     public void HandleInput(Inputs inputs) {
 
         if(!inputs.RewindButtonDown) {
-            if(_player.IsGrounded()) { 
-                _player.EnterState(new DefaultPlayerState());
-            }
-            else {
-                _player.EnterState(new FallingPlayerState());
-            }
+            RewindFinished();
         } 
     }
 
     public void HandleCollision(Collider2D other) {}
 
     public void Update() {
-        Undo();
+        Rewind();
     }
     
     public void Exit() {
+        _player.UpdateJumpingAnimation(false);
         _player.ToggleCollider(false);
         _states.Clear();
     }
@@ -41,29 +37,38 @@ public class RewindingPlayerState : IPlayerState {
         _player = player;
         _states = _player.StateStack;
         _player.ToggleCollider(true);
+
+        Debug.ClearDeveloperConsole();
+
         if(_states.Count > 0) {
-            //Debug.Log("Rewinding " + _states.Count + " states");
             _currentRewoundState = _states.Pop();
-            Debug.Log("Undo " + _currentRewoundState.GetType());
         }
     }
 
-    public void Undo() {
+    public void Undo() {}
 
-        if(_currentRewoundState is RewindingPlayerState) {
-            if(_states.Count > 1) {
-                _currentRewoundState = _states.Pop();
-                Debug.Log("Undo " + _currentRewoundState.GetType());
-            }
-        }
+    private void Rewind() {
 
         if(!_currentRewoundState.UndoComplete()) {
             _currentRewoundState.Undo();
         }
-        else if (_states.Count > 0 ) {
+        else if (_states.Count > 0) {
             _currentRewoundState = _states.Pop();
-            Debug.Log("Undo " + _currentRewoundState.GetType());
         }
+        else {
+            RewindFinished();
+        }
+    }
+
+    private void RewindFinished() {
+        if(_player.IsGrounded()) { 
+            _player.EnterState(new DefaultPlayerState());
+        }
+        else {
+            _player.EnterState(new FallingPlayerState());
+        }
+
+        _player.DisableRewind();
     }
 
     public Stack<Inputs> GetInputs() {

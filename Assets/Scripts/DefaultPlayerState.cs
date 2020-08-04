@@ -7,32 +7,26 @@ public class DefaultPlayerState : IPlayerState {
     private Player _player;
     private Vector3 _position;
 
-    private Stack<Inputs> _inputs;
+    private Stack<ICommand> _commands;
 
     public void HandleInput(Inputs inputs) {
-
-        if(!_inputs.Contains(inputs)) {
-            if(inputs.Position != Vector3.zero)
-                _inputs.Push(inputs);
-        }
 
         if(inputs.JumpButtonDown) {
             if(_player.NotOnSteel())
                 _player.EnterState(new JumpingPlayerState());
         }
-
-        if(inputs.RewindButtonDown) {
+        else if(inputs.RewindButtonDown && _player.CanRewind()) {
             _player.EnterState(new RewindingPlayerState());
         }
-
-        _position = inputs.Position;
+        else {
+            if(inputs.Position != Vector3.zero)
+                Move(inputs);
+        }
     }
 
     public void HandleCollision(Collider2D other) {}
 
     public void Update() {
-        Move(_position.x);
-
         if(!_player.IsGrounded()) {
             _player.EnterState(new FallingPlayerState());
         }
@@ -42,27 +36,23 @@ public class DefaultPlayerState : IPlayerState {
 
     public void Enter(Player player) {
         _player = player;
-        _inputs = new Stack<Inputs>();
+        _commands = new Stack<ICommand>();
+
+        _player.ResetVelocity();
     }
 
-    private void Move(float positionX) {
-        _player.Move(PlayerSettings.DefaultAccelerationFactor, PlayerSettings.DefaultMaxSpeed, positionX);
-    }
-
-    public Stack<Inputs> GetInputs() {
-        return _inputs;
+    private void Move(Inputs inputs) {
+        MoveCommand moveCommand = new MoveCommand(PlayerSettings.DefaultAccelerationFactor, PlayerSettings.DefaultMaxSpeed);
+        moveCommand.execute(inputs, _player);
+        _commands.Push(moveCommand);
     }
 
     public void Undo() {
-
-        Inputs input = _inputs.Pop();
-        Vector3 position = -input.Position;
-
-        Move(position.x);
-        _player.FlipSprite(position.x < 0);
+        ICommand command = _commands.Pop();
+        command.undo();
     }
 
     public bool UndoComplete() {
-        return _inputs.Count <= 0;
+        return _commands.Count <= 0;
     }
 }

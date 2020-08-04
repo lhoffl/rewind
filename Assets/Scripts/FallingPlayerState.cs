@@ -7,91 +7,83 @@ public class FallingPlayerState : IPlayerState {
     private Player _player;
     private Vector3 _position;
 
-    private Stack<Inputs> _inputs;
-
-    private bool _arrivedFromDefaultState = false;
+    private const int _timerMax = 15;
+    private int _currentTimer = 0;
 
     private float _currentFallForce = PlayerSettings.DoubleFallForce;
 
-    private int _finalCount;
+    private Queue<ICommand> _jumpCommands;
+    private Stack<ICommand> _moveCommands;
 
     private bool _undoActive = false;
 
     public void HandleInput(Inputs inputs) {
 
-        if(!_inputs.Contains(inputs)) {
-            if(inputs.Position != Vector3.zero)
-                _inputs.Push(inputs);
-        }
-
-        if(inputs.RewindButtonDown) {
+        if(inputs.JumpButtonDown) {
+            if(_player.NotOnSteel())
+                _player.EnterState(new JumpingPlayerState());
+        }        
+        else if(inputs.RewindButtonDown && _player.CanRewind()) {
             _player.EnterState(new RewindingPlayerState());
         }
-
-        _position = inputs.Position;
-    }
-    
-    public void Update() {
-        Move(_position.x);
-        Fall();
+        else {
+            if(inputs.Position != Vector3.zero)
+                Move(inputs);
+        }
     }
 
     public void HandleCollision(Collider2D other) {}
 
-    public void Exit() {
-        _finalCount = _inputs.Count;
+    public void Update() {
+        Fall();
     }
 
-    public void Enter(Player player) {
-        _player = player;
-        _inputs = new Stack<Inputs>();
+    public void Exit() {}
 
-        if(!(_player.GetPreviousState() is DefaultPlayerState) && !(_player.GetPreviousState() is RewindingPlayerState)) {
-            Jump();
-        }
-        else {
-            _arrivedFromDefaultState = true;
-        }
+    public void Enter(Player player) {
+        
+        _player = player;
+        _jumpCommands = new Queue<ICommand>();
+        _moveCommands = new Stack<ICommand>();
+        
+        _currentTimer = _timerMax;
     }
 
     private void Fall() {
+        
+        JumpCommand fallCommand = new JumpCommand(_currentFallForce);
+        fallCommand.execute(null, _player);
+        _jumpCommands.Enqueue(fallCommand);
 
-        _player.AddForce(_currentFallForce);
         _currentFallForce += PlayerSettings.DefaultFallAcceleration;
+        _currentTimer--;
 
-        if(_player.IsGrounded() && !_undoActive)
+        if(_player.IsGrounded() && _currentTimer <= 0 && !_undoActive)
             _player.EnterState(new DefaultPlayerState());
     }
 
-    private void Jump() {
-        _player.AddForce(PlayerSettings.DoubleJumpForce);
+    private void Move(Inputs inputs) {
+        MoveCommand moveCommand = new MoveCommand(PlayerSettings.DefaultAccelerationFactor, PlayerSettings.FallingMaxSpeed);
+        moveCommand.execute(inputs, _player);
+        _moveCommands.Push(moveCommand);
     }
 
-    private void Move(float positionX) {
-        _player.Move(PlayerSettings.DefaultAccelerationFactor, PlayerSettings.FallingMaxSpeed, positionX);
-    }
-
-    public Stack<Inputs> GetInputs() {
-        return _inputs;
-    }
 
     public void Undo() {
-
         _undoActive = true;
-
-        Inputs input = _inputs.Pop();
-        Vector3 position = -input.Position;
-
-        if(_inputs.Count == 1 && !_arrivedFromDefaultState) {
-            Jump();
+        
+        if(_jumpCommands.Count > 0) {
+            ICommand command = _jumpCommands.Dequeue();
+            command.undo();
         }
-
-        Move(position.x);
-        Fall();
-        _player.FlipSprite(position.x < 0);
+        
+        if(_moveCommands.Count > 0) {
+            ICommand command = _moveCommands.Pop();
+            command.undo();
+        }
     }
 
     public bool UndoComplete() {
-        return _inputs.Count <= 0;
+        return (_jumpCommands.Count <= 0 && _moveCommands.Count <= 0);
     }
 }
