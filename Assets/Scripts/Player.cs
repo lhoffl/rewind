@@ -149,6 +149,7 @@ public class Player : Entity {
                 _animator.SetBool("tookDamage", true);
                 _health--;
                 _audioSource.PlayOneShot(_hit);
+                UpdateHealthUI();
             }
             
             if(_health <= 0) {
@@ -174,7 +175,7 @@ public class Player : Entity {
     }
 
     public void UpdateHealthUI() {
-
+        _ui.UpdateHealthUI(_health);
     }
 
     public void UpdateRewindUI(int maximum, int current) {
@@ -231,6 +232,7 @@ public class Player : Entity {
         EnterState(new DefaultPlayerState());
         ResetVelocity();
         _health = PlayerSettings.MaxHealth;
+        UpdateHealthUI();
     }
 
     public void ChangeColor(Color color) {
