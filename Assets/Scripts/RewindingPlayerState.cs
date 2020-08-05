@@ -11,6 +11,8 @@ public class RewindingPlayerState : IPlayerState {
 
     private IPlayerState _currentRewoundState;
 
+    private bool _wasOnPoweredSteel = false;
+
     private float _defaultFallAccleration = PlayerSettings.DefaultFallAcceleration;
     private float _currentFallAccleration = 0;
 
@@ -50,6 +52,15 @@ public class RewindingPlayerState : IPlayerState {
     private void Rewind() {
 
         if(!_currentRewoundState.UndoComplete()) {
+            if(!_wasOnPoweredSteel) {
+                if(_currentRewoundState.WasOnPoweredSteel()) {
+                    _wasOnPoweredSteel = true;
+                }
+            }
+            else {
+                _currentRewoundState.ModifySpeed();
+            }
+
             _currentRewoundState.Undo();
         }
         else if (_states.Count > 0) {
@@ -78,4 +89,10 @@ public class RewindingPlayerState : IPlayerState {
     public bool UndoComplete() {
         return _states.Count <= 0;
     }
+
+    public bool WasOnPoweredSteel() {
+        return false;
+    }
+
+    public void ModifySpeed() {}
 }

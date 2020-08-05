@@ -34,4 +34,12 @@ public class JumpCommand : ICommand {
     private void Jump() {
         _entity.AddForce(_jumpForce);
     }
+
+    public bool WasOnPoweredSteel() {
+        return false;
+    }
+
+    public void ModifySpeed() {
+        
+    }
 }

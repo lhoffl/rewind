@@ -6,4 +6,6 @@ public interface ICommand {
 
     void execute(Inputs input, Entity entity);
     void undo();
+    bool WasOnPoweredSteel();
+    void ModifySpeed();
 }

@@ -11,4 +11,7 @@ public interface IPlayerState {
     void Update();
     bool UndoComplete();
     void Undo();
+
+    bool WasOnPoweredSteel();
+    void ModifySpeed();
 }

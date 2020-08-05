@@ -11,6 +11,10 @@ public class DefaultPlayerState : IPlayerState {
 
     private float _heightAtEntry;
 
+    private bool _wasOnPoweredSteel = false;
+
+    private float _currentSpeed = PlayerSettings.DefaultMaxSpeed;
+
     public void HandleInput(Inputs inputs) {
 
         if(inputs.JumpButtonDown) {
@@ -45,17 +49,31 @@ public class DefaultPlayerState : IPlayerState {
     }
 
     private void Move(Inputs inputs) {
-        MoveCommand moveCommand = new MoveCommand(PlayerSettings.DefaultAccelerationFactor, PlayerSettings.DefaultMaxSpeed, _heightAtEntry);
+        MoveCommand moveCommand = new MoveCommand(PlayerSettings.DefaultAccelerationFactor, _currentSpeed, _heightAtEntry);
         moveCommand.execute(inputs, _player);
         _commands.Push(moveCommand);
     }
 
     public void Undo() {
         ICommand command = _commands.Pop();
+        if(command.WasOnPoweredSteel())
+            _wasOnPoweredSteel = true;
+
+        if(WasOnPoweredSteel()) {
+            command.ModifySpeed();
+        }
         command.undo();
     }
 
     public bool UndoComplete() {
         return _commands.Count <= 0;
+    }
+
+    public bool WasOnPoweredSteel() {
+        return _wasOnPoweredSteel;
+    }
+
+    public void ModifySpeed() {
+        _wasOnPoweredSteel = true;
     }
 }

@@ -26,7 +26,7 @@ public class JumpingPlayerState : IPlayerState {
                 _player.EnterState(new DoubleJumpingPlayerState());
         }
         else if(inputs.RewindButtonDown && _player.CanRewind()) {
-            _player.EnterState(new RewindingPlayerState());
+            //_player.EnterState(new RewindingPlayerState());
         }
         else {
             if(inputs.Position != Vector3.zero)
@@ -42,6 +42,7 @@ public class JumpingPlayerState : IPlayerState {
 
     public void Exit() {
         _player.UpdateJumpingAnimation(false);
+        _player.EnableRewind();
     }
 
     public void Enter(Player player) {
@@ -51,6 +52,8 @@ public class JumpingPlayerState : IPlayerState {
 
         _jumpCommands = new Queue<ICommand>();
         _moveCommands = new Stack<ICommand>();
+
+        _player.DisableRewind();
         
         Jump();
         
@@ -106,5 +109,13 @@ public class JumpingPlayerState : IPlayerState {
             return true;
         }
         return false;
+    }
+
+    public bool WasOnPoweredSteel() {
+        return false;
+    }
+
+    public void ModifySpeed() {
+
     }
 }

@@ -46,4 +46,12 @@ public class MoveCommand : ICommand {
         if(_inputs.Position != Vector3.zero)
             _entity.FlipSprite(modifier * _inputs.Position.x < 0);
     }
+
+    public bool WasOnPoweredSteel() {
+        return _wasOnPoweredSteel;
+    }
+
+    public void ModifySpeed() {
+        _wasOnPoweredSteel = true;
+    }
 }

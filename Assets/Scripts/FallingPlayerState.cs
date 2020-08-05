@@ -11,6 +11,7 @@ public class FallingPlayerState : IPlayerState {
     private int _currentTimer = 0;
 
     private float _currentFallForce = PlayerSettings.DoubleFallForce;
+    private float _currentMoveSpeed = PlayerSettings.FallingMaxSpeed;
 
     private Queue<ICommand> _jumpCommands;
     private Stack<ICommand> _moveCommands;
@@ -24,7 +25,7 @@ public class FallingPlayerState : IPlayerState {
                 _player.EnterState(new JumpingPlayerState());
         }        
         else if(inputs.RewindButtonDown && _player.CanRewind()) {
-            _player.EnterState(new RewindingPlayerState());
+            //_player.EnterState(new RewindingPlayerState());
         }
         else {
             if(inputs.Position != Vector3.zero)
@@ -38,11 +39,14 @@ public class FallingPlayerState : IPlayerState {
         Fall();
     }
 
-    public void Exit() {}
+    public void Exit() {
+        _player.EnableRewind();
+    }
 
     public void Enter(Player player) {
         
         _player = player;
+        _player.DisableRewind();
         _jumpCommands = new Queue<ICommand>();
         _moveCommands = new Stack<ICommand>();
         
@@ -85,5 +89,13 @@ public class FallingPlayerState : IPlayerState {
 
     public bool UndoComplete() {
         return true;//(_jumpCommands.Count <= 0 && _moveCommands.Count <= 0);
+    }
+
+    public bool WasOnPoweredSteel() {
+        return false;
+    }
+
+    public void ModifySpeed() {
+
     }
 }

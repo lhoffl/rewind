@@ -48,7 +48,6 @@ public class Player : Entity {
     private AudioSource _audioSource;
 
     private int _health = PlayerSettings.MaxHealth;
-    
     public Rigidbody2D Rigidbody {get; private set;}
 
     public Stack<IPlayerState> StateStack;
@@ -256,6 +255,10 @@ public class Player : Entity {
 
     public void DisableRewind() {
         _rewindEnabled = false;
+    }
+
+    public void EnableRewind() {
+        _rewindEnabled = true;
     }
 
     private void TickCooldowns() {
