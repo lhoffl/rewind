@@ -51,7 +51,7 @@ public class FallingPlayerState : IPlayerState {
 
     private void Fall() {
         
-        JumpCommand fallCommand = new JumpCommand(_currentFallForce);
+        JumpCommand fallCommand = new JumpCommand(_currentFallForce, 0);
         fallCommand.execute(null, _player);
         _jumpCommands.Enqueue(fallCommand);
 
@@ -63,7 +63,7 @@ public class FallingPlayerState : IPlayerState {
     }
 
     private void Move(Inputs inputs) {
-        MoveCommand moveCommand = new MoveCommand(PlayerSettings.DefaultAccelerationFactor, PlayerSettings.FallingMaxSpeed);
+        MoveCommand moveCommand = new MoveCommand(PlayerSettings.DefaultAccelerationFactor, PlayerSettings.FallingMaxSpeed, 0);
         moveCommand.execute(inputs, _player);
         _moveCommands.Push(moveCommand);
     }
@@ -84,6 +84,6 @@ public class FallingPlayerState : IPlayerState {
     }
 
     public bool UndoComplete() {
-        return (_jumpCommands.Count <= 0 && _moveCommands.Count <= 0);
+        return true;//(_jumpCommands.Count <= 0 && _moveCommands.Count <= 0);
     }
 }

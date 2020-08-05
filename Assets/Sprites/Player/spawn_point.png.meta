@@ -20,9 +20,6 @@ TextureImporter:
   - first:
       213: -2446971042327591610
     second: spawn_point_5
-  - first:
-      213: 5165438283181227772
-    second: spawn_point_6
   externalObjects: {}
   serializedVersion: 11
   mipmaps:
@@ -243,27 +240,6 @@ TextureImporter:
       bones: []
       spriteID: 64585663dcc9a0ed0800000000000000
       internalID: -2446971042327591610
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: spawn_point_6
-      rect:
-        serializedVersion: 2
-        x: 96
-        y: 0
-        width: 16
-        height: 32
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      outline: []
-      physicsShape: []
-      tessellationDetail: 0
-      bones: []
-      spriteID: cfe783a30c25fa740800000000000000
-      internalID: 5165438283181227772
       vertices: []
       indices: 
       edges: []

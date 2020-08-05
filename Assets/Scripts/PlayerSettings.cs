@@ -21,7 +21,7 @@ public static class PlayerSettings {
 
     public static int PoweredSteelMultipler = 3;
 
-    public static int MaxHealth = HealthPerHeart * 5;
+    public static int MaxHealth = 3;
     public static int HealthPerHeart = 4;
 
     public static Color JumpColor = new Color(172f, 60f, 255f, 255f);

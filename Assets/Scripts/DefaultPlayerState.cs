@@ -9,6 +9,8 @@ public class DefaultPlayerState : IPlayerState {
 
     private Stack<ICommand> _commands;
 
+    private float _heightAtEntry;
+
     public void HandleInput(Inputs inputs) {
 
         if(inputs.JumpButtonDown) {
@@ -36,13 +38,14 @@ public class DefaultPlayerState : IPlayerState {
 
     public void Enter(Player player) {
         _player = player;
+        _heightAtEntry = _player.transform.position.y;
         _commands = new Stack<ICommand>();
 
         _player.ResetVelocity();
     }
 
     private void Move(Inputs inputs) {
-        MoveCommand moveCommand = new MoveCommand(PlayerSettings.DefaultAccelerationFactor, PlayerSettings.DefaultMaxSpeed);
+        MoveCommand moveCommand = new MoveCommand(PlayerSettings.DefaultAccelerationFactor, PlayerSettings.DefaultMaxSpeed, _heightAtEntry);
         moveCommand.execute(inputs, _player);
         _commands.Push(moveCommand);
     }

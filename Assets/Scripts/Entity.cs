@@ -24,4 +24,8 @@ public class Entity : MonoBehaviour {
     public virtual bool OnPoweredSteel() {
         return false;
     }
+
+    public void RideMovingEntity(Entity entity) {
+        transform.position = new Vector3(entity.transform.position.x, transform.position.y, transform.position.z);
+    }
 }

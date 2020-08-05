@@ -10,6 +10,8 @@ public class DoubleJumpingPlayerState : IPlayerState {
     private const int _timerMax = 15;
     private int _currentTimer = 0;
 
+    private float _heightAtJump;
+
     private float _currentFallForce = PlayerSettings.DoubleFallForce;
 
     private Queue<ICommand> _jumpCommands;
@@ -39,18 +41,21 @@ public class DoubleJumpingPlayerState : IPlayerState {
     public void Enter(Player player) {
         
         _player = player;
+        _heightAtJump = _player.transform.position.y;
+        
         _jumpCommands = new Queue<ICommand>();
         _moveCommands = new Stack<ICommand>();
         
         Jump();
-
+        
         _currentTimer = _timerMax;
     }
 
     private void Fall() {
         
-        JumpCommand fallCommand = new JumpCommand(_currentFallForce);
+        JumpCommand fallCommand = new JumpCommand(_currentFallForce, _heightAtJump);
         fallCommand.execute(null, _player);
+
         _jumpCommands.Enqueue(fallCommand);
 
         _currentFallForce += PlayerSettings.DefaultFallAcceleration;
@@ -58,16 +63,19 @@ public class DoubleJumpingPlayerState : IPlayerState {
 
         if(_player.IsGrounded() && _currentTimer <= 0 && !_undoActive)
             _player.EnterState(new DefaultPlayerState());
+        
     }
 
     private void Jump() {
-        JumpCommand jumpCommand = new JumpCommand(PlayerSettings.DoubleJumpForce);
+        JumpCommand jumpCommand = new JumpCommand(PlayerSettings.DoubleJumpForce, _heightAtJump);
         jumpCommand.execute(null, _player);
         _jumpCommands.Enqueue(jumpCommand);
+
+        _player.PlaySound("doubleJump");
     }
 
     private void Move(Inputs inputs) {
-        MoveCommand moveCommand = new MoveCommand(PlayerSettings.DefaultAccelerationFactor, PlayerSettings.FallingMaxSpeed);
+        MoveCommand moveCommand = new MoveCommand(PlayerSettings.DefaultAccelerationFactor, PlayerSettings.FallingMaxSpeed, _heightAtJump);
         moveCommand.execute(inputs, _player);
         _moveCommands.Push(moveCommand);
     }

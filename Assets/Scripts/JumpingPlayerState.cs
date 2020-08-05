@@ -15,6 +15,8 @@ public class JumpingPlayerState : IPlayerState {
     private Queue<ICommand> _jumpCommands;
     private Stack<ICommand> _moveCommands;
 
+    private float _heightAtJump;
+
     private bool _undoActive = false;
 
     public void HandleInput(Inputs inputs) {
@@ -45,6 +47,8 @@ public class JumpingPlayerState : IPlayerState {
     public void Enter(Player player) {
         
         _player = player;
+        _heightAtJump = _player.transform.position.y;
+
         _jumpCommands = new Queue<ICommand>();
         _moveCommands = new Stack<ICommand>();
         
@@ -55,14 +59,16 @@ public class JumpingPlayerState : IPlayerState {
     }
 
     private void Jump() {
-        JumpCommand jumpCommand = new JumpCommand(PlayerSettings.JumpForce);
+        JumpCommand jumpCommand = new JumpCommand(PlayerSettings.JumpForce, _heightAtJump);
         jumpCommand.execute(null, _player);
         _jumpCommands.Enqueue(jumpCommand);
+
+        _player.PlaySound("jump");
     }
 
     private void Fall() {
         
-        JumpCommand fallCommand = new JumpCommand(_currentFallForce);
+        JumpCommand fallCommand = new JumpCommand(_currentFallForce, _heightAtJump);
         fallCommand.execute(null, _player);
         _jumpCommands.Enqueue(fallCommand);
 
@@ -74,7 +80,7 @@ public class JumpingPlayerState : IPlayerState {
     }
 
     private void Move(Inputs inputs) {
-        MoveCommand moveCommand = new MoveCommand(PlayerSettings.JumpingAccelerationFactor, PlayerSettings.DefaultMaxSpeed);
+        MoveCommand moveCommand = new MoveCommand(PlayerSettings.JumpingAccelerationFactor, PlayerSettings.DefaultMaxSpeed, _heightAtJump);
         moveCommand.execute(inputs, _player);
         _moveCommands.Push(moveCommand);
     }

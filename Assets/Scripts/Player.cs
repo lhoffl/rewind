@@ -10,12 +10,18 @@ public class Player : Entity {
     [SerializeField]
     private SpawnPoint _initialSpawn;
 
+    [SerializeField]
+    private AudioClip _hit, _levelComplete, _jump, _doubleJump, _death, _checkpoint;
+
+    [SerializeField]
+    private MusicManager _music;
+
     private IPlayerState _currentState;
     private IPlayerState _previousState;
 
     private Rigidbody2D _rigidbody;
     private SpriteRenderer _spriteRenderer;
-    private BoxCollider2D _hitbox;
+    private CapsuleCollider2D _hitbox;
 
     private SpawnPoint _spawnPoint;
     private Animator _animator;
@@ -31,6 +37,16 @@ public class Player : Entity {
     private const int DAMAGE_COOLDOWN = 15;
     private int _damagedCooldownCounter;
 
+    private bool _takenDamageWithinCooldown = false;
+
+    private int _distanceToDeath = 100;
+
+    private bool _onMovingPlatform;
+
+    private MovingPlatform _currentPlatform;
+
+    private AudioSource _audioSource;
+
     private int _health = PlayerSettings.MaxHealth;
     
     public Rigidbody2D Rigidbody {get; private set;}
@@ -40,7 +56,7 @@ public class Player : Entity {
     private void Start() {
         _rigidbody = GetComponent<Rigidbody2D>();
         _spriteRenderer = GetComponent<SpriteRenderer>();
-        _hitbox = GetComponent<BoxCollider2D>();
+        _hitbox = GetComponent<CapsuleCollider2D>();
         _animator = GetComponent<Animator>();
 
         StateStack = new Stack<IPlayerState>();
@@ -51,13 +67,15 @@ public class Player : Entity {
         _cooldownCounter = REWIND_COOLDOWN;
 
         _stuckCooldownCounter = STUCK_COOLDOWN;
-
         _damagedCooldownCounter = DAMAGE_COOLDOWN;
 
         _spawnPoint = _initialSpawn;
         _spawnPoint.SetActive(true);
+        transform.position = _spawnPoint.transform.position;
 
         Rigidbody = _rigidbody;
+
+        _audioSource = GetComponent<AudioSource>();
 
         EnterState(new DefaultPlayerState());
     }
@@ -73,12 +91,16 @@ public class Player : Entity {
         else {
             _stuckCooldownCounter = STUCK_COOLDOWN;
         }
+
+        if(_onMovingPlatform) {
+            RideMovingEntity(_currentPlatform);
+        }
     }
 
     private void FixedUpdate() {
         _currentState.Update();
 
-        if(Mathf.Abs(transform.position.y) > 100) {
+        if(Mathf.Abs(transform.position.y - _spawnPoint.transform.position.y) > _distanceToDeath) {
             Respawn();
         }
     }
@@ -102,14 +124,15 @@ public class Player : Entity {
     }
 
     private void OnTriggerEnter2D(Collider2D other) {
-
+        
         SpawnPoint spawnPoint = other.gameObject.GetComponent<SpawnPoint>();
 
         if(spawnPoint != null) {
-            if(spawnPoint != _spawnPoint) {
+            if(spawnPoint.transform.position != _spawnPoint.transform.position) {
                 _spawnPoint.SetActive(false);
                 spawnPoint.SetActive(true);
                 SetSpawn(spawnPoint);
+                _audioSource.PlayOneShot(_checkpoint);
             }
         }
 
@@ -117,14 +140,32 @@ public class Player : Entity {
 
         if(!(_currentState is RewindingPlayerState) && enemy != null) {
             
-            if(_damagedCooldownCounter <= 0) {
+            if(!_takenDamageWithinCooldown) {
+                _damagedCooldownCounter = DAMAGE_COOLDOWN;
+                _takenDamageWithinCooldown = true;
+
                 _animator.SetBool("tookDamage", true);
                 _health--;
+                _audioSource.PlayOneShot(_hit);
             }
             
             if(_health <= 0) {
                 Respawn();
             }
+        }
+
+        Goal goal = other.gameObject.GetComponent<Goal>();
+        if(goal != null) {
+            _audioSource.PlayOneShot(_levelComplete);
+        }
+
+        MovingPlatform movingPlatform = other.gameObject.GetComponent<MovingPlatform>();
+        if(movingPlatform != null) {
+            _onMovingPlatform = true;
+            _currentPlatform = movingPlatform;
+        }
+        else {
+            _onMovingPlatform = false;
         }
 
         _currentState.HandleCollision(other);
@@ -171,7 +212,9 @@ public class Player : Entity {
     }
 
     public void Respawn() {
-        
+
+        _audioSource.PlayOneShot(_death);
+
         _stuckCooldownCounter = STUCK_COOLDOWN;
         transform.position = _spawnPoint.transform.position;
         EnterState(new DefaultPlayerState());
@@ -230,10 +273,14 @@ public class Player : Entity {
             }
         }
 
-        _damagedCooldownCounter--;
+        if(_takenDamageWithinCooldown)
+            _damagedCooldownCounter--;
+        
         if(_damagedCooldownCounter <= 0) {
             _damagedCooldownCounter = DAMAGE_COOLDOWN;
             _animator.SetBool("tookDamage", false);
+
+            _takenDamageWithinCooldown = false;
         }
     }
 
@@ -253,5 +300,23 @@ public class Player : Entity {
 
     public void SetSpawn(SpawnPoint spawnPoint) {
         _spawnPoint = spawnPoint;
+    }
+
+    public void PlaySound(string sound) {
+        
+        AudioClip clip = null;
+
+        if(sound.Equals("jump"))
+            clip = _jump;
+        else if(sound.Equals("doubleJump"))
+            clip = _doubleJump;
+
+        if(clip != null) {
+            _audioSource.PlayOneShot(clip);
+        }
+    }
+
+    public void SetGravityScale(float gravityScale) {
+        _rigidbody.gravityScale = gravityScale;
     }
 }

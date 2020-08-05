@@ -44,7 +44,7 @@ public class Enemy : Entity {
     }
 
     private void Move(Inputs inputs) {
-        MoveCommand moveCommand = new MoveCommand(PlayerSettings.DefaultAccelerationFactor/2, PlayerSettings.DefaultMaxSpeed/2);
+        MoveCommand moveCommand = new MoveCommand(PlayerSettings.DefaultAccelerationFactor/2, PlayerSettings.DefaultMaxSpeed/2, transform.position.y);
         moveCommand.execute(inputs, this);
         _commands.Push(moveCommand);
     }

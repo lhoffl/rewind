@@ -31,14 +31,14 @@ public class RewindingPlayerState : IPlayerState {
         _player.UpdateJumpingAnimation(false);
         _player.ToggleCollider(false);
         _states.Clear();
+        _player.SetGravityScale(1);
     }
 
     public void Enter(Player player) {
         _player = player;
         _states = _player.StateStack;
         _player.ToggleCollider(true);
-
-        Debug.ClearDeveloperConsole();
+        _player.SetGravityScale(0);
 
         if(_states.Count > 0) {
             _currentRewoundState = _states.Pop();

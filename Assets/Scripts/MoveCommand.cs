@@ -8,12 +8,14 @@ public class MoveCommand : ICommand {
     Entity _entity;
 
     float _acceleration, _maxSpeed;
+    float _heightAtExecution;
 
     bool _wasOnPoweredSteel;
 
-    public MoveCommand(float acceleration, float maxSpeed) {
+    public MoveCommand(float acceleration, float maxSpeed, float heightAtExecution) {
         _acceleration = acceleration;
         _maxSpeed = maxSpeed;
+        _heightAtExecution = heightAtExecution;
     }
 
     public void execute(Inputs input, Entity entity) {
@@ -26,6 +28,10 @@ public class MoveCommand : ICommand {
 
     public void undo() {
         Move(true);
+        float clampedHeight = (Mathf.Clamp(_entity.transform.position.y, _heightAtExecution, float.MaxValue));
+        Vector3 clampedPostion = new Vector3(_entity.transform.position.x, _heightAtExecution, _entity.transform.position.z);
+
+        //_entity.transform.position = clampedPostion;
     }
 
     private void Move(bool undo) {
