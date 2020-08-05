@@ -11,6 +11,8 @@ public class RewindingPlayerState : IPlayerState {
 
     private IPlayerState _currentRewoundState;
 
+    private int _maxStates;
+
     private bool _wasOnPoweredSteel = false;
 
     private float _defaultFallAccleration = PlayerSettings.DefaultFallAcceleration;
@@ -34,6 +36,7 @@ public class RewindingPlayerState : IPlayerState {
         _player.ToggleCollider(false);
         _states.Clear();
         _player.SetGravityScale(1);
+        _player.UpdateRewindUI(_states.Count, 0);
     }
 
     public void Enter(Player player) {
@@ -44,6 +47,8 @@ public class RewindingPlayerState : IPlayerState {
 
         if(_states.Count > 0) {
             _currentRewoundState = _states.Pop();
+            _maxStates = _states.Count;
+            _player.UpdateRewindUI(_states.Count, _states.Count);
         }
     }
 
@@ -64,6 +69,7 @@ public class RewindingPlayerState : IPlayerState {
             _currentRewoundState.Undo();
         }
         else if (_states.Count > 0) {
+            _player.UpdateRewindUI(_maxStates, _states.Count);
             _currentRewoundState = _states.Pop();
         }
         else {

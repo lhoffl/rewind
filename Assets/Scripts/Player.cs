@@ -47,6 +47,8 @@ public class Player : Entity {
 
     private AudioSource _audioSource;
 
+    private UI _ui;
+
     private int _health = PlayerSettings.MaxHealth;
     public Rigidbody2D Rigidbody {get; private set;}
 
@@ -57,6 +59,7 @@ public class Player : Entity {
         _spriteRenderer = GetComponent<SpriteRenderer>();
         _hitbox = GetComponent<CapsuleCollider2D>();
         _animator = GetComponent<Animator>();
+        _ui = GetComponent<UI>();
 
         StateStack = new Stack<IPlayerState>();
 
@@ -168,6 +171,15 @@ public class Player : Entity {
         }
 
         _currentState.HandleCollision(other);
+    }
+
+    public void UpdateHealthUI() {
+
+    }
+
+    public void UpdateRewindUI(int maximum, int current) {
+        _ui.UpdateRewindMax(maximum);
+        _ui.UpdateCurrentState(current);
     }
 
     public bool IsGrounded() {
