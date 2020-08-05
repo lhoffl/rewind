@@ -174,6 +174,10 @@ public class Player : Entity {
         _currentState.HandleCollision(other);
     }
 
+    public bool IsRewinding() {
+        return (_currentState is RewindingPlayerState);
+    }
+
     public void UpdateHealthUI() {
         _ui.UpdateHealthUI(_health);
     }
