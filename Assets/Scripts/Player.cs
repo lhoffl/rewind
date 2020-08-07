@@ -19,8 +19,6 @@ public class Player : Entity {
     private IPlayerState _currentState;
     private IPlayerState _previousState;
 
-    private Rigidbody2D _rigidbody;
-    private SpriteRenderer _spriteRenderer;
     private CapsuleCollider2D _hitbox;
 
     private SpawnPoint _spawnPoint;
@@ -47,6 +45,12 @@ public class Player : Entity {
 
     private AudioSource _audioSource;
 
+    private int _currentLevel = 1;
+
+    private int _totalLevels = 6;
+
+    private bool _wonCurrentLevel = false;
+
     private UI _ui;
 
     private int _health = PlayerSettings.MaxHealth;
@@ -55,8 +59,6 @@ public class Player : Entity {
     public Stack<IPlayerState> StateStack;
 
     private void Start() {
-        _rigidbody = GetComponent<Rigidbody2D>();
-        _spriteRenderer = GetComponent<SpriteRenderer>();
         _hitbox = GetComponent<CapsuleCollider2D>();
         _animator = GetComponent<Animator>();
         _ui = GetComponent<UI>();
@@ -70,10 +72,15 @@ public class Player : Entity {
 
         _stuckCooldownCounter = STUCK_COOLDOWN;
         _damagedCooldownCounter = DAMAGE_COOLDOWN;
-
-        _spawnPoint = _initialSpawn;
-        _spawnPoint.SetActive(true);
-        transform.position = _spawnPoint.transform.position;
+        
+        if(_initialSpawn != null) {
+           _spawnPoint = _initialSpawn;
+           _spawnPoint.SetActive(true);
+           transform.position = _spawnPoint.transform.position;
+        }
+        else {
+            _wonCurrentLevel = true;
+        }
 
         Rigidbody = _rigidbody;
 
@@ -102,7 +109,7 @@ public class Player : Entity {
     private void FixedUpdate() {
         _currentState.Update();
 
-        if(Mathf.Abs(transform.position.y - _spawnPoint.transform.position.y) > _distanceToDeath) {
+        if(!_wonCurrentLevel && Mathf.Abs(transform.position.y - _spawnPoint.transform.position.y) > _distanceToDeath) {
             Respawn();
         }
     }
@@ -122,7 +129,8 @@ public class Player : Entity {
     } 
     
     public void HandleInput(Inputs inputs) {
-        _currentState.HandleInput(inputs);
+        if(!_wonCurrentLevel)  
+            _currentState.HandleInput(inputs);
     }
 
     private void OnTriggerEnter2D(Collider2D other) {
@@ -158,8 +166,18 @@ public class Player : Entity {
         }
 
         Goal goal = other.gameObject.GetComponent<Goal>();
-        if(goal != null) {
+        if(goal != null && !_wonCurrentLevel) {
+            _wonCurrentLevel = true;
             _audioSource.PlayOneShot(_levelComplete);
+
+            if(SceneChanger.CurrentLevel >= _totalLevels) {
+                SceneChanger.CurrentLevel = 1;
+                SceneChanger.LoadMenu("End");
+            }
+            else {
+                SceneChanger.CurrentLevel++;
+                SceneChanger.Instance.LoadLevel(SceneChanger.CurrentLevel);
+            }
         }
 
         MovingPlatform movingPlatform = other.gameObject.GetComponent<MovingPlatform>();
@@ -331,6 +349,8 @@ public class Player : Entity {
             clip = _jump;
         else if(sound.Equals("doubleJump"))
             clip = _doubleJump;
+        else if(sound.Equals("LevelComplete"))
+            clip = _levelComplete;
 
         if(clip != null) {
             _audioSource.PlayOneShot(clip);

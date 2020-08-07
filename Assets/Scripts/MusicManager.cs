@@ -13,6 +13,8 @@ public class MusicManager : MonoBehaviour {
     void Start() {
         _source = GetComponent<AudioSource>();
 
+        DontDestroyOnLoad(this);
+
         _source.volume = 0.8f;
         StartMusic();
     }

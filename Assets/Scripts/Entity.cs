@@ -4,8 +4,8 @@ using UnityEngine;
 
 public class Entity : MonoBehaviour {
 
-    SpriteRenderer _spriteRenderer;
-    Rigidbody2D _rigidbody;
+    protected SpriteRenderer _spriteRenderer;
+    protected Rigidbody2D _rigidbody;
 
     void Awake() {
         _spriteRenderer = GetComponent<SpriteRenderer>();
