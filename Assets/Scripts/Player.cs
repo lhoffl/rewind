@@ -47,7 +47,7 @@ public class Player : Entity {
 
     private int _currentLevel = 1;
 
-    private int _totalLevels = 6;
+    private int _totalLevels = 7;
 
     private bool _wonCurrentLevel = false;
 
